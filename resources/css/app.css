@@ -1231,6 +1231,7 @@ body {
     font-weight: 500;
     letter-spacing: -0.06em;
     line-height: 0.94;
+    white-space: pre-line;
 }
 
 .folio-cover-copy h1 em {
@@ -1304,6 +1305,7 @@ body {
     font-weight: 500;
     letter-spacing: -0.055em;
     line-height: 0.99;
+    white-space: pre-line;
 }
 
 .folio-page-title em {
@@ -1531,6 +1533,7 @@ body {
     font-family: var(--serif);
     font-size: clamp(22px, 3.5vw, 40px);
     text-align: center;
+    white-space: pre-line;
 }
 
 .folio-back-cover-colophon {
@@ -1574,6 +1577,28 @@ body {
 
 .folio-arrow-next {
     right: max(12px, calc((100vw - 1520px) / 2));
+}
+
+.folio-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 24px;
+    color: #66695d;
+    text-align: center;
+}
+
+.folio-loading p {
+    max-width: 420px;
+    font-family: var(--serif);
+    font-size: clamp(21px, 3vw, 30px);
+}
+
+.folio-loading a {
+    color: #65705a;
+    font-size: 13px;
 }
 
 @media (max-width: 700px) {

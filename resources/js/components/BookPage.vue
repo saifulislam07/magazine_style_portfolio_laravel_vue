@@ -16,6 +16,10 @@ defineProps({
         type: Array,
         required: true,
     },
+    settings: {
+        type: Object,
+        required: true,
+    },
 });
 </script>
 
@@ -31,42 +35,42 @@ defineProps({
             <img class="folio-cover-image" :src="page.image" :alt="page.imageAlt">
             <div class="folio-cover-shade"></div>
             <div class="folio-cover-topline">
-                <span>FIELDNOTES JOURNAL</span>
-                <span>NO. 01 &nbsp;·&nbsp; 2025</span>
+                <span>{{ settings.brand }} JOURNAL</span>
+                <span>{{ settings.cover_issue }}</span>
             </div>
             <div class="folio-cover-copy">
-                <span class="folio-cover-mark">F.</span>
-                <p class="folio-cover-kicker">A PHOTOGRAPHIC JOURNAL</p>
-                <h1>Stories in<br><em>stillness.</em></h1>
-                <p class="folio-cover-author">NOOR RAHMAN</p>
+                <span class="folio-cover-mark">{{ settings.brand.charAt(0) }}.</span>
+                <p class="folio-cover-kicker">{{ settings.cover_kicker }}</p>
+                <h1>{{ settings.cover_title }}</h1>
+                <p class="folio-cover-author">{{ settings.author }}</p>
             </div>
             <div class="folio-cover-bottom">
-                <span>PEOPLE &nbsp;·&nbsp; PLACES &nbsp;·&nbsp; THE IN-BETWEEN</span>
-                <span>OPEN THE COVER &nbsp;→</span>
+                <span>{{ settings.cover_strapline }}</span>
+                <span>{{ settings.cover_open_text }}</span>
             </div>
         </template>
 
         <template v-else-if="page.kind === 'back-cover'">
-            <div class="folio-back-cover-mark">F.</div>
-            <p class="folio-back-cover-name">FIELDNOTES</p>
+            <div class="folio-back-cover-mark">{{ settings.brand.charAt(0) }}.</div>
+            <p class="folio-back-cover-name">{{ settings.brand }}</p>
             <span class="folio-back-cover-rule"></span>
-            <p class="folio-back-cover-note">THANK YOU FOR<br>TURNING THE PAGES.</p>
-            <span class="folio-back-cover-colophon">NOOR RAHMAN &nbsp;·&nbsp; 2025</span>
+            <p class="folio-back-cover-note">{{ settings.back_cover_text }}</p>
+            <span class="folio-back-cover-colophon">{{ settings.author }} &nbsp;·&nbsp; {{ settings.back_cover_year }}</span>
         </template>
 
         <template v-else>
             <header class="folio-page-header">
                 <a href="#folio-cover" class="folio-mini-brand" data-page-target="0">
-                    <span>F.</span> FIELDNOTES
+                    <span>{{ settings.brand.charAt(0) }}.</span> {{ settings.brand }}
                 </a>
-                <span>NOOR RAHMAN &nbsp;·&nbsp; PHOTOGRAPHY</span>
+                <span>{{ settings.author }} &nbsp;·&nbsp; {{ settings.photography_label }}</span>
             </header>
 
             <main class="folio-page-main">
                 <template v-if="page.kind === 'contents'">
-                    <p class="folio-eyebrow">THE FIRST PAGES</p>
-                    <h1 class="folio-page-title">Contents<span>.</span></h1>
-                    <p class="folio-page-intro">A field guide to the stories, milestones, and people found along the way.</p>
+                    <p class="folio-eyebrow">{{ page.section }}</p>
+                    <h1 class="folio-page-title">{{ page.title }}</h1>
+                    <p class="folio-page-intro">{{ page.intro }}</p>
                     <nav class="folio-contents" aria-label="Book contents">
                         <a
                             v-for="item in contents"
@@ -83,17 +87,17 @@ defineProps({
                 </template>
 
                 <template v-else-if="page.kind === 'colophon'">
-                    <p class="folio-eyebrow">A NOTE BEFORE YOU GO</p>
-                    <h1 class="folio-page-title">Keep looking<br><em>closely.</em></h1>
-                    <p class="folio-page-intro">The best stories are often the ones we almost walk past. Thank you for taking the time to see them with me.</p>
-                    <div class="folio-signature">Noor <span>Rahman</span></div>
-                    <a class="folio-inline-link" href="#folio-cover" data-page-target="0">RETURN TO THE COVER <span>↗</span></a>
+                    <p class="folio-eyebrow">{{ page.section }}</p>
+                    <h1 class="folio-page-title">{{ page.title }}</h1>
+                    <p class="folio-page-intro">{{ page.intro }}</p>
+                    <div class="folio-signature">{{ page.signature }}</div>
+                    <a class="folio-inline-link" href="#folio-cover" data-page-target="0">{{ settings.return_to_cover_text }} <span>↗</span></a>
                 </template>
 
                 <template v-else>
                     <div class="folio-chapter-heading">
                         <p class="folio-eyebrow">{{ page.section }}</p>
-                        <h1 class="folio-page-title" v-html="page.title"></h1>
+                        <h1 class="folio-page-title">{{ page.title }}</h1>
                         <p class="folio-page-intro">{{ page.intro }}</p>
                     </div>
 
@@ -113,8 +117,8 @@ defineProps({
                         </li>
                     </ol>
 
-                    <div v-if="page.kind === 'contact'" class="folio-contact">
-                        <p class="folio-eyebrow">GOOD THINGS START WITH A HELLO</p>
+                    <div v-if="page.layout === 'contact'" class="folio-contact">
+                        <p class="folio-eyebrow">{{ settings.contact_kicker }}</p>
                         <a :href="`mailto:${page.email}`">{{ page.email }}</a>
                         <span>{{ page.location }}</span>
                     </div>
@@ -122,7 +126,7 @@ defineProps({
             </main>
 
             <footer class="folio-page-footer">
-                <span>{{ page.label || 'FIELDNOTES' }}</span>
+                <span>{{ page.label }}</span>
                 <span>{{ String(pageNumber + 1).padStart(2, '0') }} <i>/</i> {{ String(pageCount).padStart(2, '0') }}</span>
             </footer>
         </template>

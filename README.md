@@ -9,6 +9,23 @@
 
 ## About Laravel
 
+## Fieldnotes Photography Book
+
+This Laravel and Vue application renders the public photography site as a page-turning book. Book pages and publication details are stored in the database and can be managed from the protected admin studio.
+
+### First-time setup
+
+```bash
+php artisan migrate --seed
+npm install
+npm run build
+php artisan admin:create
+```
+
+The `admin:create` command asks for the administrator's name, email, and a confirmed password (minimum 12 characters). No default admin account or password is seeded. Sign in at `/admin/login`; manage pages at `/admin`.
+
+The admin studio can edit the cover, contents, chapter copy and photos, achievements, publications, contact details, page order, and book identity settings. New and deleted chapters update the public book immediately. Image fields accept HTTP or HTTPS image URLs.
+
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
 - [Simple, fast routing engine](https://laravel.com/docs/routing).

@@ -1,4 +1,6 @@
 <script setup>
+import ContactForm from './ContactForm.vue';
+
 defineProps({
     page: {
         type: Object,
@@ -52,6 +54,10 @@ defineProps({
                 <span>{{ settings.cover_strapline }}</span>
                 <span>{{ settings.cover_open_text }}</span>
             </div>
+        </template>
+
+        <template v-else-if="page.kind === 'endpaper'">
+            <div class="folio-endpaper-mark" aria-hidden="true">{{ settings.brand.charAt(0) }}.</div>
         </template>
 
         <template v-else-if="page.kind === 'back-cover'">
@@ -134,12 +140,11 @@ defineProps({
                         </li>
                     </ol>
 
-                    <div v-if="page.layout === 'contact'" class="folio-contact">
+                    <div v-if="page.layout === 'contact'" class="folio-contact" :class="{ 'has-form': site.contactFormEnabled }">
                         <p class="folio-eyebrow">{{ settings.contact_kicker }}</p>
                         <a v-if="page.email" :href="`mailto:${page.email}`">{{ page.email }}</a>
                         <span>{{ page.location }}</span>
-                        <button v-if="site.contactFormEnabled" type="button" class="folio-contact-button" data-contact-open>
-Send a message →</button>
+                        <ContactForm v-if="site.contactFormEnabled" />
                         <nav v-if="site.socialLinks?.length" class="folio-socials" aria-label="Social profiles">
                             <a
                                 v-for="link in site.socialLinks"

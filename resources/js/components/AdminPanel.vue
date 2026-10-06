@@ -251,17 +251,21 @@ function addPage() {
     };
 }
 
-async function removePage() {
-    if (!draft.value || draft.value.kind !== 'chapter') return;
-    if (!window.confirm(`Delete “${draft.value.label}” from the book?`)) return;
+async function removePage(page = draft.value) {
+    if (!page || page.kind !== 'chapter' || page.isNew || saving.value) return;
+    if (!window.confirm(`Delete “${page.label}” from the book? This cannot be undone.`)) return;
 
     saving.value = true;
     try {
-        await request(`/admin/api/pages/${encodeURIComponent(draft.value.id)}`, { method: 'DELETE' });
-        pages.value = pages.value.filter((page) => page.id !== draft.value.id);
-        selectedId.value = null;
-        draft.value = null;
-        showSuccess('Chapter deleted.');
+        await request(`/admin/api/pages/${encodeURIComponent(page.id)}`, { method: 'DELETE' });
+        pages.value = pages.value
+            .filter((item) => item.id !== page.id)
+            .map((item, index) => ({ ...item, position: index }));
+        if (draft.value?.id === page.id) {
+            selectedId.value = null;
+            draft.value = null;
+        }
+        showSuccess(`“${page.label}” deleted.`);
     } catch (error) {
         showError(error.message);
     } finally {
@@ -488,53 +492,65 @@ onBeforeUnmount(() => {
 
             <section v-else class="editor-layout">
                 <aside class="page-list-panel">
-                    <div class="page-list-title">
-                        <span>BOOK STRUCTURE</span>
-                        <span>{{ pages.length }} pages</span>
-                    </div>
-                    <p class="page-list-hint">Drag chapters, or use ↑ ↓, to change their order in the book and on the contents page.</p>
-                    <div
-                        v-for="page in pages"
-                        :key="page.id"
-                        class="page-list-row"
-                        :class="{
-                            'is-draggable': page.kind === 'chapter',
-                            'is-dragging': draggedChapterId === page.id,
-                            'is-drop-target': dragOverChapterId === page.id && draggedChapterId !== page.id,
-                        }"
-                        :draggable="page.kind === 'chapter' && !saving"
-                        @dragstart="page.kind === 'chapter' && startChapterDrag(page)"
-                        @dragover="dragOverChapter($event, page)"
-                        @drop.prevent="page.kind === 'chapter' && dropChapterOn(page)"
-                        @dragend="endChapterDrag"
-                    >
-                        <button
-                            type="button"
-                            class="page-list-item"
-                            :class="{ selected: selectedId === page.id || draft?.id === page.id }"
-                            @click="selectPage(page)"
+                    <div class="page-list-sticky">
+                        <div class="page-list-title">
+                            <span>BOOK STRUCTURE</span>
+                            <span>{{ pages.length }} pages</span>
+                        </div>
+                        <p class="page-list-hint">Drag chapters, or use ↑ ↓, to change their order in the book and on the contents page.</p>
+                        <div
+                            v-for="page in pages"
+                            :key="page.id"
+                            class="page-list-row"
+                            :class="{
+                                'is-draggable': page.kind === 'chapter',
+                                'is-dragging': draggedChapterId === page.id,
+                                'is-drop-target': dragOverChapterId === page.id && draggedChapterId !== page.id,
+                            }"
+                            :draggable="page.kind === 'chapter' && !saving"
+                            @dragstart="page.kind === 'chapter' && startChapterDrag(page)"
+                            @dragover="dragOverChapter($event, page)"
+                            @drop.prevent="page.kind === 'chapter' && dropChapterOn(page)"
+                            @dragend="endChapterDrag"
                         >
-                            <span class="page-list-number">{{ String(page.position + 1).padStart(2, '0') }}</span>
-                            <span class="page-list-label">
-                                <strong>{{ page.label || page.id }}</strong>
-                                <small>{{ page.kind === 'chapter' ? (page.content.layout ?? 'image').toUpperCase() : kindLabel(page.kind) }}</small>
-                            </span>
-                            <span v-if="page.kind === 'chapter'" class="drag-mark" aria-hidden="true">⠿</span>
-                            <span v-else class="lock-mark">◆</span>
-                        </button>
-                        <div v-if="page.kind === 'chapter'" class="page-list-order">
                             <button
                                 type="button"
-                                :aria-label="`Move ${page.label} up`"
-                                :disabled="saving || chapterPages.indexOf(page) <= 0"
-                                @click="moveChapterAt(chapterPages.indexOf(page), -1)"
-                            >↑</button>
+                                class="page-list-item"
+                                :class="{ selected: selectedId === page.id || draft?.id === page.id }"
+                                @click="selectPage(page)"
+                            >
+                                <span class="page-list-number">{{ String(page.position + 1).padStart(2, '0') }}</span>
+                                <span class="page-list-label">
+                                    <strong>{{ page.label || page.id }}</strong>
+                                    <small>{{ page.kind === 'chapter' ? (page.content.layout ?? 'image').toUpperCase() : kindLabel(page.kind) }}</small>
+                                </span>
+                                <span v-if="page.kind === 'chapter'" class="drag-mark" aria-hidden="true">⠿</span>
+                                <span v-else class="lock-mark">◆</span>
+                            </button>
+                            <div v-if="page.kind === 'chapter'" class="page-list-order">
+                                <button
+                                    type="button"
+                                    :aria-label="`Move ${page.label} up`"
+                                    :disabled="saving || chapterPages.indexOf(page) <= 0"
+                                    @click="moveChapterAt(chapterPages.indexOf(page), -1)"
+                                >↑</button>
+                                <button
+                                    type="button"
+                                    :aria-label="`Move ${page.label} down`"
+                                    :disabled="saving || chapterPages.indexOf(page) >= chapterPages.length - 1"
+                                    @click="moveChapterAt(chapterPages.indexOf(page), 1)"
+                                >↓</button>
+                            </div>
                             <button
+                                v-if="page.kind === 'chapter'"
                                 type="button"
-                                :aria-label="`Move ${page.label} down`"
-                                :disabled="saving || chapterPages.indexOf(page) >= chapterPages.length - 1"
-                                @click="moveChapterAt(chapterPages.indexOf(page), 1)"
-                            >↓</button>
+                                class="page-list-delete"
+                                :aria-label="`Delete ${page.label}`"
+                                title="Delete this chapter"
+                                :disabled="saving"
+                                @click="removePage(page)"
+                            >🗑</button>
+                            <span v-else class="page-list-locked" title="Fixed page — it can be edited but not deleted">🔒</span>
                         </div>
                     </div>
                 </aside>
@@ -548,7 +564,9 @@ onBeforeUnmount(() => {
                         <div v-if="draft.kind === 'chapter' && !draft.isNew" class="reorder-actions">
                             <button type="button" aria-label="Move chapter up" :disabled="selectedIndex <= 0 || saving" @click="moveChapter(-1)">↑</button>
                             <button type="button" aria-label="Move chapter down" :disabled="selectedIndex < 0 || selectedIndex >= chapterPages.length - 1 || saving" @click="moveChapter(1)">↓</button>
+                            <button type="button" class="danger-button" :disabled="saving" @click="removePage()">🗑 Delete</button>
                         </div>
+                        <p v-else-if="!draft.isNew" class="fixed-page-hint">Fixed page · can be edited, not deleted</p>
                     </div>
 
                     <form class="page-form" @submit.prevent="savePage">
@@ -651,8 +669,8 @@ onBeforeUnmount(() => {
                         </div>
 
                         <div class="form-actions sticky-actions">
-                            <button v-if="draft.kind === 'chapter' && !draft.isNew" type="button" class="text-danger delete-action" :disabled="saving" @click="removePage">
-                                Delete chapter
+                            <button v-if="draft.kind === 'chapter' && !draft.isNew" type="button" class="danger-button delete-action" :disabled="saving" @click="removePage()">
+                                🗑 Delete chapter
                             </button>
                             <button class="admin-primary" type="submit" :disabled="saving">
                                 {{ saving ? 'Saving…' : 'Save page' }} <span>→</span>

@@ -2,7 +2,6 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { PageFlip } from 'page-flip';
 import BookPage from './BookPage.vue';
-import ContactDialog from './ContactDialog.vue';
 
 const bookElement = ref(null);
 const currentPageIndex = ref(0);
@@ -13,7 +12,6 @@ const loadError = ref('');
 const bookPages = ref([]);
 const bookSettings = ref({});
 const siteInfo = ref({ contactFormEnabled: false, socialLinks: [] });
-const contactOpen = ref(false);
 const contents = computed(() => bookPages.value
     .map((page, pageNumber) => ({ ...page, pageNumber }))
     .filter((page) => page.kind === 'chapter' && !page.isContinuation));
@@ -42,6 +40,21 @@ function paginateGalleries(pages) {
 
         return sheets;
     });
+}
+
+/**
+ * With a single-page front cover, the back cover only sits alone (closing the book)
+ * when the page count is even, so add a blank endpaper before it when needed.
+ */
+function closeWithBackCover(pages) {
+    const backCoverIndex = pages.findIndex((page) => page.kind === 'back-cover');
+    if (pages.length % 2 === 0 || backCoverIndex === -1) return pages;
+
+    return [
+        ...pages.slice(0, backCoverIndex),
+        { id: 'endpaper', kind: 'endpaper', label: '' },
+        ...pages.slice(backCoverIndex),
+    ];
 }
 
 const defaultFlippingTime = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 1 : 1400;
@@ -101,14 +114,6 @@ function flipThroughTo(pageNumber) {
 }
 
 function handleBookClick(event) {
-    if (event.target.closest('[data-contact-open]')) {
-        event.preventDefault();
-        event.stopPropagation();
-        contactOpen.value = true;
-
-        return;
-    }
-
     const target = event.target.closest('[data-page-target]');
     if (!target || !bookElement.value?.contains(target)) return;
 
@@ -121,7 +126,6 @@ function handleBookClick(event) {
 }
 
 function handleKeydown(event) {
-    if (contactOpen.value) return;
     if (event.key === 'ArrowRight') turnPage(1);
     if (event.key === 'ArrowLeft') turnPage(-1);
 }
@@ -140,7 +144,7 @@ onMounted(async () => {
             throw new Error('The book has not been set up yet. Please run the database seed and refresh.');
         }
 
-        bookPages.value = paginateGalleries(data.pages);
+        bookPages.value = closeWithBackCover(paginateGalleries(data.pages));
         bookSettings.value = data.settings ?? {};
         siteInfo.value = data.site ?? siteInfo.value;
         isLoading.value = false;
@@ -251,10 +255,5 @@ onBeforeUnmount(() => {
             @click="turnPage(1)"
         >→</button>
 
-        <ContactDialog
-            :open="contactOpen"
-            :kicker="bookSettings.contact_kicker"
-            @close="contactOpen = false"
-        />
     </main>
 </template>

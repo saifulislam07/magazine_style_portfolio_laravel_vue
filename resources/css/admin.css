@@ -1444,6 +1444,93 @@
     gap: 10px;
 }
 
+/* ---------- Fixed page list beside the editor ---------- */
+
+.editor-layout {
+    overflow: clip;
+}
+
+.page-list-sticky {
+    position: sticky;
+    top: 16px;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+}
+
+@media (max-width: 760px) {
+    .page-list-sticky {
+        position: static;
+        max-height: none;
+        overflow: visible;
+    }
+}
+
+/* ---------- Delete controls ---------- */
+
+.danger-button,
+.reorder-actions .danger-button {
+    display: inline-flex;
+    width: auto;
+    min-height: 36px;
+    align-items: center;
+    gap: 6px;
+    padding: 0 14px;
+    border: 1px solid #e3b9aa;
+    border-radius: 3px;
+    background: #fff6f2;
+    color: #8a3f28 !important;
+    cursor: pointer;
+    font-size: 13px !important;
+    font-weight: 600;
+}
+
+.danger-button:hover:not(:disabled) {
+    border-color: #a14b33;
+    background: #a14b33;
+    color: #fff !important;
+}
+
+.danger-button:disabled {
+    cursor: wait;
+    opacity: .5;
+}
+
+.page-list-delete,
+.page-list-locked {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 0;
+    border-radius: 3px;
+    background: transparent;
+    font-size: 13px;
+}
+
+.page-list-delete {
+    cursor: pointer;
+    opacity: .55;
+}
+
+.page-list-delete:hover:not(:disabled) {
+    background: #f7e2da;
+    opacity: 1;
+}
+
+.page-list-locked {
+    font-size: 11px;
+    opacity: .35;
+}
+
+.fixed-page-hint {
+    margin: 0;
+    color: #55584d;
+    font-size: 12px;
+}
+
 /* ---------- Inbox ---------- */
 
 .inbox-layout {

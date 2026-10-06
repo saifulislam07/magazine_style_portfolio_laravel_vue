@@ -1,0 +1,11 @@
+{!! '<'.'?xml version="1.0" encoding="UTF-8"?>' !!}
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>{{ $homeUrl }}</loc>
+@if ($lastModified)
+        <lastmod>{{ $lastModified }}</lastmod>
+@endif
+        <changefreq>weekly</changefreq>
+        <priority>1.0</priority>
+    </url>
+</urlset>

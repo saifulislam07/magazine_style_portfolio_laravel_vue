@@ -194,7 +194,7 @@ class AdminBookController extends Controller
             'content.caption' => ['nullable', 'string', 'max:255'],
             'content.note' => ['nullable', 'string', 'max:255'],
             'content.number' => ['nullable', 'string', 'max:20'],
-            'content.layout' => ['nullable', Rule::in(['image', 'list', 'contact'])],
+            'content.layout' => ['nullable', Rule::in(['image', 'gallery', 'list', 'contact'])],
             'content.email' => ['nullable', 'email', 'max:254'],
             'content.location' => ['nullable', 'string', 'max:255'],
             'content.signature' => ['nullable', 'string', 'max:100'],
@@ -202,6 +202,10 @@ class AdminBookController extends Controller
             'content.items.*.kicker' => ['nullable', 'string', 'max:100'],
             'content.items.*.title' => ['required_with:content.items', 'string', 'max:160'],
             'content.items.*.description' => ['nullable', 'string', 'max:300'],
+            'content.photos' => ['nullable', 'array', 'max:60'],
+            'content.photos.*.image' => ['required_with:content.photos', 'url:http,https', 'max:2048'],
+            'content.photos.*.alt' => ['nullable', 'string', 'max:255'],
+            'content.photos.*.caption' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

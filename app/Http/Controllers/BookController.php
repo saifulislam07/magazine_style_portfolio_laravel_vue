@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\BookPage;
 use App\Models\BookSetting;
+use App\Models\SiteSetting;
 use Illuminate\Http\JsonResponse;
 
 class BookController extends Controller
@@ -18,6 +19,10 @@ class BookController extends Controller
                 ->get()
                 ->map(fn (BookPage $page) => $page->toBookData())
                 ->values(),
+            'site' => [
+                'contactFormEnabled' => (bool) SiteSetting::valuesFor('contact')['form_enabled'],
+                'socialLinks' => SiteSetting::socialLinks(),
+            ],
         ]);
     }
 }

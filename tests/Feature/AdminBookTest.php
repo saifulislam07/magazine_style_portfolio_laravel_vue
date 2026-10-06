@@ -102,6 +102,35 @@ class AdminBookTest extends TestCase
         $this->assertDatabaseMissing('book_pages', ['slug' => $slug]);
     }
 
+    public function test_admin_can_create_a_gallery_page_with_up_to_sixty_photos(): void
+    {
+        $this->actingAs(User::factory()->create(['is_admin' => true]));
+        $this->createPage('colophon', 'colophon', 'Closing note', 0);
+
+        $photo = ['image' => 'https://example.com/photo.jpg', 'alt' => 'A lake', 'caption' => 'Morning'];
+
+        $this->postJson('/admin/api/pages', [
+            'label' => 'Gallery',
+            'content' => ['layout' => 'gallery', 'photos' => array_fill(0, 61, $photo)],
+        ])->assertUnprocessable()->assertJsonValidationErrors('content.photos');
+
+        $this->postJson('/admin/api/pages', [
+            'label' => 'Gallery',
+            'content' => ['layout' => 'gallery', 'photos' => [['image' => 'not-a-url']]],
+        ])->assertUnprocessable()->assertJsonValidationErrors('content.photos.0.image');
+
+        $this->postJson('/admin/api/pages', [
+            'label' => 'Gallery',
+            'content' => ['layout' => 'gallery', 'photos' => array_fill(0, 12, $photo)],
+        ])->assertCreated()
+            ->assertJsonPath('page.content.layout', 'gallery')
+            ->assertJsonCount(12, 'page.content.photos');
+
+        $this->getJson('/book-data')
+            ->assertOk()
+            ->assertJsonPath('pages.0.photos.0.caption', 'Morning');
+    }
+
     public function test_admin_login_only_creates_a_session_for_an_admin(): void
     {
         $user = User::factory()->create([

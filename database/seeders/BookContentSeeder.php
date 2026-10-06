@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\BookPage;
 use App\Models\BookSetting;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class BookContentSeeder extends Seeder
 {
@@ -222,5 +223,62 @@ class BookContentSeeder extends Seeder
                 $page,
             );
         }
+
+        $this->seedGalleryPage();
+    }
+
+    /**
+     * Add the gallery chapter just before the closing note, shifting later pages back by one.
+     */
+    private function seedGalleryPage(): void
+    {
+        if (BookPage::query()->where('slug', 'gallery')->exists()) {
+            return;
+        }
+
+        DB::transaction(function (): void {
+            $position = BookPage::query()->where('kind', 'colophon')->value('position')
+                ?? BookPage::query()->count();
+
+            BookPage::query()
+                ->where('position', '>=', $position)
+                ->increment('position');
+
+            BookPage::query()->create([
+                'slug' => 'gallery',
+                'kind' => 'chapter',
+                'label' => 'Gallery',
+                'position' => $position,
+                'content' => [
+                    'section' => 'SELECTED FRAMES',
+                    'title' => "From the\ncontact sheet.",
+                    'intro' => 'A handful of favourite frames from the road, the city, and the quiet places in between.',
+                    'note' => 'GALLERY',
+                    'layout' => 'gallery',
+                    'photos' => [
+                        [
+                            'image' => 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1400&q=85',
+                            'alt' => 'A lake framed by mountains at sunrise',
+                            'caption' => 'First light over the lake',
+                        ],
+                        [
+                            'image' => 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=900&q=85',
+                            'alt' => 'Mountain ridges above a sea of clouds',
+                            'caption' => 'Above the clouds',
+                        ],
+                        [
+                            'image' => 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=900&q=85',
+                            'alt' => 'City skyline at dusk',
+                            'caption' => 'The city, after rain',
+                        ],
+                        [
+                            'image' => 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=900&q=85',
+                            'alt' => 'Sunlight through a green forest',
+                            'caption' => 'Forest light',
+                        ],
+                    ],
+                ],
+            ]);
+        });
     }
 }

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\BookPage;
+use App\Models\BookSetting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,7 +19,13 @@ class AdminAuthController extends Controller
                 : abort(403);
         }
 
-        return view('admin-login');
+        $settings = BookSetting::query()->find(1)?->data ?? [];
+
+        return view('admin-login', [
+            'brand' => $settings['brand'] ?? 'FIELDNOTES',
+            'author' => $settings['author'] ?? null,
+            'coverImage' => BookPage::query()->where('kind', 'cover')->first()?->content['image'] ?? null,
+        ]);
     }
 
     public function store(Request $request): RedirectResponse

@@ -20,6 +20,10 @@ defineProps({
         type: Object,
         required: true,
     },
+    site: {
+        type: Object,
+        default: () => ({ contactFormEnabled: false, socialLinks: [] }),
+    },
 });
 </script>
 
@@ -95,13 +99,26 @@ defineProps({
                 </template>
 
                 <template v-else>
-                    <div class="folio-chapter-heading">
+                    <p v-if="page.isContinuation" class="folio-eyebrow">{{ page.section }} &nbsp;·&nbsp; CONTINUED</p>
+
+                    <div v-else class="folio-chapter-heading">
                         <p class="folio-eyebrow">{{ page.section }}</p>
                         <h1 class="folio-page-title">{{ page.title }}</h1>
                         <p class="folio-page-intro">{{ page.intro }}</p>
                     </div>
 
-                    <div v-if="page.image" class="folio-feature">
+                    <div
+                        v-if="page.layout === 'gallery' && page.photos?.length"
+                        class="folio-gallery"
+                        :class="{ 'is-continued': page.isContinuation }"
+                    >
+                        <figure v-for="(photo, index) in page.photos" :key="`${photo.image}-${index}`">
+                            <img :src="photo.image" :alt="photo.alt" loading="lazy">
+                            <figcaption v-if="photo.caption">{{ photo.caption }}</figcaption>
+                        </figure>
+                    </div>
+
+                    <div v-else-if="page.image" class="folio-feature">
                         <img :src="page.image" :alt="page.imageAlt">
                         <p>{{ page.caption }}</p>
                     </div>
@@ -119,8 +136,19 @@ defineProps({
 
                     <div v-if="page.layout === 'contact'" class="folio-contact">
                         <p class="folio-eyebrow">{{ settings.contact_kicker }}</p>
-                        <a :href="`mailto:${page.email}`">{{ page.email }}</a>
+                        <a v-if="page.email" :href="`mailto:${page.email}`">{{ page.email }}</a>
                         <span>{{ page.location }}</span>
+                        <button v-if="site.contactFormEnabled" type="button" class="folio-contact-button" data-contact-open>
+Send a message →</button>
+                        <nav v-if="site.socialLinks?.length" class="folio-socials" aria-label="Social profiles">
+                            <a
+                                v-for="link in site.socialLinks"
+                                :key="link.key"
+                                :href="link.url"
+                                target="_blank"
+                                rel="noopener noreferrer me"
+                            >{{ link.label }}</a>
+                        </nav>
                     </div>
                 </template>
             </main>
